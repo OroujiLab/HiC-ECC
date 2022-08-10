@@ -1,4 +1,7 @@
 # HiC-ECC (Enhance, Compare, and Call) Pipeline
+## DEV: To Do
+- push/update code on forks
+
 ## Motivation
 <p>The Hi-C technology is a powerful genomic analysis technique tool for studying 3D genome organization. However, due to sequencing cost, the resolution of Hi-C datasets is often coarse. Many effective tools exist to computationally enhance the resolution of these Hi-C datasets. </p>
 <p>Changes in the 3D organization of chromatin are associated with central biological processes, such as transcription, replication and development. Furthermore, differences between Hi-C samples taken from different cell types or phases, or between healthy and cancerous cells, yield varying structural features and biological implications. Therefore, the comprehensive quantification of these differences and the identification of specific genome structures is fundamental to the understanding of biological mechanisms and to the development of therapeutical treatments. Many tools also exist to computationally compare and identify structures in Hi-C datasets. </p>
@@ -12,7 +15,6 @@
 - **HiC-Pro** - https://github.com/nservant/HiC-Pro \
 HiC-Pro is an optimized and flexible pipeline for Hi-C data processing. Raw .fastq files from HiC experiments are inputted, and .matrix interaction maps/matrices are outputted.
 
-HiC-Pro 
 ### Enhancing Interaction Maps
 - **DeepHiC** - https://github.com/Jakob-Zerbs/DeepHiC/tree/dev \
 DeepHiC is a deep learning model developed for boosting the resolution of Hi-C data. It is based on Generative Adversarial Network. It takes low-resolution data as conditional inputs for Generator Net in GAN and outputs the enhanced Hi-C matrices.
