@@ -1,6 +1,5 @@
 # HiC-ECC (Enhance, Compare, and Call) Pipeline
-## DEV: To Do
-- push/update code on forks
+
 
 ## Motivation
 <p>The Hi-C technology is a powerful genomic analysis technique tool for studying 3D genome organization. However, due to sequencing cost, the resolution of Hi-C datasets is often coarse. Many effective tools exist to computationally enhance the resolution of these Hi-C datasets. </p>
