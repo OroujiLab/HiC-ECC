@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-HiC-ECC: Hi-C Enhancement, Comparison, and Classification Tool
-A comprehensive pipeline for Hi-C data enhancement and differential analysis
+HiC-ECC: Hi-C Enhancement, Comparison, and Call Tool
 """
 
 import argparse
@@ -15,7 +14,7 @@ from pathlib import Path
 from datetime import datetime
 
 __version__ = "1.0.0"
-__author__ = "Your Name"
+__author__ = "AN"
 
 def setup_logging(output_dir, verbose=False):
     """Setup logging configuration"""
