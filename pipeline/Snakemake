@@ -1,0 +1,221 @@
+# Snakefile for HiC-ECC: Hi-C Enhancement-Call-Compare Pipeline
+# Input: HiC-Pro output matrices (shallow sequenced)
+# Output: Enhanced matrices, loops, TADs, and comparisons
+
+configfile: "config.yaml"
+
+# ========== Configuration ==========
+SAMPLES = config["samples"]
+RESOLUTION = config["resolution"]  # e.g., "10kb"
+RES_BP = int(RESOLUTION.replace("kb", "")) * 1000  # Convert to base pairs
+GENOME = config["genome"]
+CHROM_SIZES = config["chrom_sizes"]
+CHROMOSOMES = config["chromosomes"]
+
+# Directories
+HICPRO_DIR = config["hicpro_dir"]
+DEEPHIC_DIR = "results/deephic"
+COOL_DIR = "results/cool_files"
+FITHIC_DIR = "results/fithic"
+TADS_DIR = "results/tads"
+CHESS_DIR = "results/chess"
+
+# ========== Target Rule ==========
+rule all:
+    input:
+        # Enhanced cool files
+        expand(f"{COOL_DIR}/{{sample}}/{{sample}}_deephic.cool", sample=SAMPLES),
+        # TADs
+        expand(f"{TADS_DIR}/{{sample}}_tads_domains.bed", sample=SAMPLES),
+        # FitHiC loops
+        expand(f"{FITHIC_DIR}/{{sample}}/FitHiC.spline_pass1.significances.txt.gz", sample=SAMPLES),
+        # CHESS comparisons
+        f"{CHESS_DIR}/all_comparisons_done.txt"
+
+# ========== DeepHiC Enhancement ==========
+rule hicpro_to_deephic:
+    input:
+        bed = f"{HICPRO_DIR}/{{sample}}_{RESOLUTION}_abs.bed",
+        mat = f"{HICPRO_DIR}/{{sample}}_{RESOLUTION}.matrix"
+    output:
+        directory(f"{DEEPHIC_DIR}/mat/{{sample}}")
+    params:
+        res = RES_BP
+    shell:
+        """
+        python scripts/hicpro2deephic.py \
+            --bed {input.bed} \
+            --mat {input.mat} \
+            -r {params.res} \
+            -o {output}
+        """
+
+rule deephic_generate:
+    input:
+        f"{DEEPHIC_DIR}/mat/{{sample}}"
+    output:
+        directory(f"{DEEPHIC_DIR}/data/{{sample}}")
+    params:
+        res = RES_BP,
+        workdir = DEEPHIC_DIR
+    shell:
+        """
+        cd {params.workdir}
+        python scripts/data_generate.py \
+            -hr {params.res} -lr {params.res} -lrc 100 \
+            -s {GENOME} -chunk 100 -stride 100 -bound 9999 -scale 1 \
+            -c {wildcards.sample}
+        """
+
+rule deephic_predict:
+    input:
+        f"{DEEPHIC_DIR}/data/{{sample}}"
+    output:
+        directory(f"{DEEPHIC_DIR}/predict/{{sample}}")
+    params:
+        res = RES_BP,
+        ckpt = config["deephic_checkpoint"],
+        workdir = DEEPHIC_DIR
+    shell:
+        """
+        cd {params.workdir}
+        python scripts/data_predict.py \
+            -lr {params.res} \
+            -ckpt {params.ckpt} \
+            -c {wildcards.sample}
+        """
+
+# ========== Convert to Cool Format ==========
+rule deephic_to_cool:
+    input:
+        f"{DEEPHIC_DIR}/predict/{{sample}}"
+    output:
+        cool = f"{COOL_DIR}/{{sample}}/{{sample}}_deephic.cool"
+    params:
+        bg2 = f"{COOL_DIR}/{{sample}}/{{sample}}_deephic.bg2",
+        binsize = RES_BP,
+        resolution = RESOLUTION
+    shell:
+        """
+        mkdir -p {COOL_DIR}/{wildcards.sample}
+        
+        python3 scripts/deephic_to_bg2.py \
+            --input {input} \
+            --output {params.bg2} \
+            --binsize {params.binsize} \
+            --resolution {params.resolution}
+        
+        cooler load -f bg2 {CHROM_SIZES}:{params.binsize} \
+            {params.bg2} {output.cool} \
+            --count-as-float --input-copy-status duplex
+        
+        rm {params.bg2}
+        """
+
+# ========== TAD Calling ==========
+rule call_tads:
+    input:
+        f"{COOL_DIR}/{{sample}}/{{sample}}_deephic.cool"
+    output:
+        f"{TADS_DIR}/{{sample}}_tads_domains.bed"
+    params:
+        prefix = f"{TADS_DIR}/{{sample}}_tads"
+    shell:
+        """
+        mkdir -p {TADS_DIR}
+        hicFindTADs -m {input} --outPrefix {params.prefix} --correctForMultipleTesting fdr
+        """
+
+# ========== FitHiC Loop Calling ==========
+rule prepare_fithic:
+    input:
+        deephic = f"{COOL_DIR}/{{sample}}/{{sample}}_deephic.cool",
+        hicpro = f"{COOL_DIR}/{{sample}}/{{sample}}_hicpro.cool"
+    output:
+        frags = f"{FITHIC_DIR}/{{sample}}/{{sample}}.frags.txt.gz",
+        contacts = f"{FITHIC_DIR}/{{sample}}/{{sample}}.contacts.txt.gz"
+    shell:
+        """
+        mkdir -p {FITHIC_DIR}/{wildcards.sample}
+        
+        # Calculate scaling factor
+        deephic_sum=$(cooler dump -t pixels --join {input.deephic} | awk 'NR>1 {{s+=$7}} END {{print s}}')
+        hicpro_sum=$(cooler dump -t pixels --join {input.hicpro} | awk 'NR>1 {{s+=$7}} END {{print s}}')
+        scale=$(awk -v h="$hicpro_sum" -v d="$deephic_sum" 'BEGIN {{printf "%.10f", h/d}}')
+        
+        # Generate fragments file
+        cooler dump -t bins --header {input.deephic} | \
+            awk 'BEGIN{{OFS="\\t"}} NR>1 {{print $1,$2,$3,NR-2}}' | \
+            gzip > {output.frags}
+        
+        # Generate contacts file (scaled)
+        cooler dump -t pixels --join --header {input.deephic} | \
+            awk -v sc="$scale" 'BEGIN{{OFS="\\t"}} 
+                NR>1 && $1==$4 && $2!=$5 {{
+                    m1 = int(($2+$3)/2)
+                    m2 = int(($5+$6)/2)
+                    c = int($7 * sc + 0.5)
+                    if (c > 0) print $1,m1,$4,m2,c
+                }}' | \
+            gzip > {output.contacts}
+        """
+
+rule run_fithic:
+    input:
+        frags = f"{FITHIC_DIR}/{{sample}}/{{sample}}.frags.txt.gz",
+        contacts = f"{FITHIC_DIR}/{{sample}}/{{sample}}.contacts.txt.gz"
+    output:
+        f"{FITHIC_DIR}/{{sample}}/FitHiC.spline_pass1.significances.txt.gz"
+    params:
+        outdir = f"{FITHIC_DIR}/{{sample}}",
+        binsize = RES_BP
+    shell:
+        """
+        fithic -f {input.frags} -i {input.contacts} \
+            -o {params.outdir} -r {params.binsize} \
+            -L 20000 -U 2000000
+        """
+
+# ========== CHESS Similarity Comparisons ==========
+rule chess_generate_pairs:
+    output:
+        f"{CHESS_DIR}/bed_files/chr{{chr}}_pairs.bed"
+    params:
+        window = config["chess_window"],
+        binsize = RES_BP
+    shell:
+        """
+        mkdir -p {CHESS_DIR}/bed_files
+        chess pairs {GENOME} {params.window} {params.binsize} {output} --chromosome chr{wildcards.chr}
+        """
+
+rule chess_compare:
+    input:
+        bed = f"{CHESS_DIR}/bed_files/chr{{chr}}_pairs.bed",
+        cool1 = f"{COOL_DIR}/{{sample1}}/{{sample1}}_deephic.cool",
+        cool2 = f"{COOL_DIR}/{{sample2}}/{{sample2}}_deephic.cool"
+    output:
+        f"{CHESS_DIR}/{{sample1}}_vs_{{sample2}}/chr{{chr}}.tsv"
+    threads: 4
+    shell:
+        """
+        mkdir -p {CHESS_DIR}/{wildcards.sample1}_vs_{wildcards.sample2}
+        chess sim {input.cool1} {input.cool2} {input.bed} {output} -p {threads}
+        """
+
+def get_chess_comparisons():
+    comparisons = []
+    for i, s1 in enumerate(SAMPLES):
+        for s2 in SAMPLES[i+1:]:
+            for chr in CHROMOSOMES:
+                comparisons.append(f"{CHESS_DIR}/{s1}_vs_{s2}/chr{chr}.tsv")
+    return comparisons
+
+rule chess_all:
+    input:
+        expand(f"{CHESS_DIR}/bed_files/chr{{chr}}_pairs.bed", chr=CHROMOSOMES),
+        get_chess_comparisons()
+    output:
+        f"{CHESS_DIR}/all_comparisons_done.txt"
+    shell:
+        "touch {output}"
