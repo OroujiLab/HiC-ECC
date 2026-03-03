@@ -32,11 +32,11 @@ An algorithm for the comparison of chromatin contact maps and automatic differen
 multiHiCcompare provides functions for the joint normalization and comparison of complex Hi-C experiments.
 
 ### Calling Structures
-- **TADbit** - https://github.com/Jakob-Zerbs/TADbit \
-TADbit is a Python library with capabilities to map FASTsQ files to obtain raw interaction binned matrices (Hi-C like matrices), normalize and correct interaction matrices, and identify and compare the Topologically Associating Domains (TADs).
+- **hicFindTAD** - https://github.com/deeptools/HiCExplorer/tree/master \
+hicFindTAD
 
-- **NeoLoopFinder** - https://github.com/Jakob-Zerbs/NeoLoopFinder \
-NeoLoopFinder is a computational framework that identifies the chromatin interactions induced by SVs, such as inter-chromosomal translocations, large deletions, and inversions. 
+- **chromosight** - https://github.com/koszullab/chromosight \
+chromosight
 
 ### Visualization Tools
 - https://github.com/vaquerizaslab/fanc
@@ -44,7 +44,6 @@ NeoLoopFinder is a computational framework that identifies the chromatin interac
   
 ## Results
 The HiC enhance and compare pipeline was tested on the following mm10 tissue samples:
-- Heart
 - Kidney
 - Spleen
 - Liver
