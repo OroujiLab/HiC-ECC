@@ -30,10 +30,10 @@ An algorithm for the comparison of chromatin contact maps and automatic differen
 
 ### Calling Structures
 - **hicFindTAD** - https://github.com/deeptools/HiCExplorer/tree/master \
-hicFindTAD
+hicFindTADs, part of the HiCExplorer suite, identifies TAD boundaries by computing insulation scores along the diagonal of Hi-C contact matrices and detecting significant changes in interaction frequencies.
 
 - **chromosight** - https://github.com/koszullab/chromosight \
-chromosight
+Chromosight detects chromatin loops and other structural patterns in Hi-C contact matrices using a correlation-based template matching approach.
 
 ### Visualization Tools
 - https://github.com/vaquerizaslab/fanc
