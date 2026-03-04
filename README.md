@@ -28,9 +28,6 @@ DeepLoop handles systematic biases and random noises separately: HiCorr improves
 - **CHESS** - https://github.com/Jakob-Zerbs/chess \
 An algorithm for the comparison of chromatin contact maps and automatic differential feature extraction using the SSIM score.
 
-- **multiHiCcompare** - https://github.com/Jakob-Zerbs/multiHiCcompare \
-multiHiCcompare provides functions for the joint normalization and comparison of complex Hi-C experiments.
-
 ### Calling Structures
 - **hicFindTAD** - https://github.com/deeptools/HiCExplorer/tree/master \
 hicFindTAD
