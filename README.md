@@ -11,20 +11,38 @@
 
 ## Dependencies (conda env: hic, Python 3.9)
 
-### Hi-C analysis
-cooler, cooltools, pairtools, chess-hic, fithic, tadbit, coolpuppy, hicrep, hic-straw, hicexplorer (2.2.1.1)
+- cooler
+- cooltools
+- pairtools
+- chess-hic
+- fithic
+- tadbit
+- cooler-ontad
+- coolpuppy
+- hicrep
+- hic-straw
+- hicexplorer
+- PyTorch 2.1.1
+- torchvision
+- fanc
+- matplotlib
+- seaborn
+- plotly
+- tadtool
+- bedtools
+- samtools
+- deeptools
+- macs2
+- pybedtools
+- pybigwig
+- bioframe
+- numpy
+- scipy
+- pandas
+- scikit-learn
+- numba
+- dask
 
-### Enhancement
-PyTorch 2.1.1, torchvision (DeepHiC)
-
-### Visualization
-fanc, matplotlib, seaborn, plotly, tadtool
-
-### Genomics
-bedtools, samtools, deeptools, macs2, pybedtools, pybigwig, bioframe
-
-### General
-numpy, scipy, pandas, scikit-learn, numba, dask
 
 ## Methods and Tools
 ### HiC Pre-processing 
