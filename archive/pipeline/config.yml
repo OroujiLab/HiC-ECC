@@ -1,0 +1,24 @@
+# Sample names
+samples:
+  - Sample1
+  - Sample2
+  - Sample3
+
+# Genome configuration
+genome: "mm10"
+chrom_sizes: "data/mm10.chrom.sizes"
+chromosomes: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+              "11", "12", "13", "14", "15", "16", "17", "18", "19", "X", "Y"]
+
+# Resolution
+resolution: "10kb"
+
+# Input directory (HiC-Pro outputs)
+hicpro_dir: "data/hicpro_output"
+
+# DeepHiC
+deephic_path: "DeepHiC"  # Path to cloned DeepHiC repo
+deephic_checkpoint: "models/deephic_raw_16.pth"
+
+# CHESS window size
+chess_window: 310000
