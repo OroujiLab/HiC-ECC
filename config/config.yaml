@@ -1,24 +1,95 @@
-# Sample names
+# ─────────────────────────────────────────────────────────────
+# HiC-ECC Configuration File
+# Edit this file to run the pipeline on your data
+# ─────────────────────────────────────────────────────────────
+
+# ── Samples ──────────────────────────────────────────────────
 samples:
-  - Sample1
-  - Sample2
-  - Sample3
+  - CSC_432
+  - CSC_433
+  - CSC_478L
+  - POP_092
+  - POP_160
 
-# Genome configuration
-genome: "mm10"
-chrom_sizes: "data/mm10.chrom.sizes"
-chromosomes: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
-              "11", "12", "13", "14", "15", "16", "17", "18", "19", "X", "Y"]
+# ── Genome ───────────────────────────────────────────────────
+genome: hg38                          # mm10 or hg38
+species: human                        # human or mouse
+chrom_sizes: /path/to/hg38.chrom.sizes.filtered
+chromosomes:                          # chromosomes to process
+  - chr1
+  - chr2
+  - chr3
+  - chr4
+  - chr5
+  - chr6
+  - chr7
+  - chr8
+  - chr9
+  - chr10
+  - chr11
+  - chr12
+  - chr13
+  - chr14
+  - chr15
+  - chr16
+  - chr17
+  - chr18
+  - chr19
+  - chr20
+  - chr21
+  - chr22
+  - chrX
+  - chrY
 
-# Resolution
-resolution: "10kb"
+# ── Resolution ───────────────────────────────────────────────
+resolution: 10000                     # in bp (e.g. 10000, 25000, 100000)
 
-# Input directory (HiC-Pro outputs)
-hicpro_dir: "data/hicpro_output"
+# ── Paths ─────────────────────────────────────────────────────
+hicpro_dir: /path/to/hicpro_output   # parent dir containing per-sample HiC-Pro folders
+output_dir: /path/to/output          # all pipeline outputs go here
 
-# DeepHiC
-deephic_path: "DeepHiC"  # Path to cloned DeepHiC repo
-deephic_checkpoint: "models/deephic_raw_16.pth"
+# ── Enhancement (DeepHiC) ────────────────────────────────────
+enhancement:
+  method: deephic
+  deephic_path: /path/to/DeepHiC     # cloned DeepHiC repo
+  checkpoint: /path/to/deephic_raw_16.pth
+  chunk: 100
+  stride: 100
+  bound: 9999
+  lrc: 100
 
-# CHESS window size
-chess_window: 310000
+# ── Comparison (CHESS) ───────────────────────────────────────
+comparison:
+  method: chess
+  window: 310000                      # window size in bp
+  step: 10000                         # step size in bp (increase to save memory)
+  threads: 4
+  sn_threshold: 0                     # minimum SN for unique region extraction
+  zsim_threshold: 0                   # maximum z_ssim for unique region extraction
+
+# ── Calling ──────────────────────────────────────────────────
+calling:
+  tad:
+    tool: hicFindTADs
+    fdr_correction: true
+  loops:
+    tool: chromosight
+    threads: 12
+
+# ── Visualization (pyECC) ────────────────────────────────────
+visualization:
+  region:
+    chr: 4
+    start: 55000000
+    end: 56000000
+    gene_name: Test_Region            # used in output filename
+  percentile: 90
+  merge_intervals: true
+  win_sz: 310kb
+  show_tads: true
+  show_loops: true
+  show_arcs: true
+  show_insulation: true
+  show_genes: true
+  specificity_samples: []             # list of samples or [] to disable
+  gtf_path: /path/to/annotation.gtf
