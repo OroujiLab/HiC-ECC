@@ -17,7 +17,7 @@ The pipeline consists of three modules:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/HiC-ECC.git
+git clone https://github.com/OroujiLab/HiC-ECC
 cd HiC-ECC
 
 # Create and activate the conda environment
