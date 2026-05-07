@@ -1,13 +1,104 @@
-# HiC-ECC (Enhance, Compare, and Call) Pipeline
+# HiC-ECC: Hi-C Enhancement, Comparison, and Calling Pipeline
 
+![Pipeline Overview](figures/fig1.png)
+![Results](figures/fig3.png)
+![Enhancement Comparison](figures/fig4.png)
 
-## Motivation
-<p>The Hi-C technology is a powerful genomic analysis technique tool for studying 3D genome organization. However, due to sequencing cost, the resolution of Hi-C datasets is often coarse. Many effective tools exist to computationally enhance the resolution of these Hi-C datasets. </p>
-<p>Changes in the 3D organization of chromatin are associated with central biological processes, such as transcription, replication and development. Furthermore, differences between Hi-C samples taken from different cell types or phases, or between healthy and cancerous cells, yield varying structural features and biological implications. Therefore, the comprehensive quantification of these differences and the identification of specific genome structures is fundamental to the understanding of biological mechanisms and to the development of therapeutical treatments. Many tools also exist to computationally compare and identify structures in Hi-C datasets. </p>
-<p>Despite the rising availability of these individual tools, there is an increasing need to streamline these various tools into a single analytical pipeline. Even more so, this pipeline should be made up of the best performing methods, determined through unbiased comparative analysis. Such a pipeline would greatly improve the quality and ease of analysis in Hi-C experiments. </p>
+## Overview
 
-![Image 1](figures/fig1.png)
-![Image 2](figures/fig3.png)
+HiC-ECC is an end-to-end pipeline for Hi-C data analysis, integrating resolution enhancement, pairwise comparison, and structure calling into a single config-driven workflow. It is designed to be accessible to biologists with minimal computational experience, while remaining flexible for advanced users.
+
+The pipeline consists of three modules:
+1. **Enhance** — Improve Hi-C resolution using deep learning (DeepHiC)
+2. **Compare** — Pairwise comparison of chromatin contact maps and unique region extraction (CHESS)
+3. **Call** — Loop and TAD calling on enhanced maps (Chromosight, hicFindTADs)
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/HiC-ECC.git
+cd HiC-ECC
+
+# Create and activate the conda environment
+conda env create -f environment.yml
+conda activate hic
+```
+
+## Quick Start
+
+1. Edit `config/config.yaml` with your paths and samples
+2. Run the full pipeline:
+
+```bash
+python run.py --config config/config.yaml --module all
+```
+
+Or run individual modules:
+
+```bash
+python run.py --config config/config.yaml --module enhance
+python run.py --config config/config.yaml --module compare
+python run.py --config config/config.yaml --module call
+```
+
+For SLURM clusters, parallelize the compare module across tissues:
+
+```bash
+for i in {0..7}; do sbatch submit_compare.sh $i; done
+```
+
+## Repository Structure
+
+```
+HiC-ECC/
+├── src/                  # Core Python modules
+│   ├── enhance.py
+│   ├── compare.py
+│   └── call.py
+├── notebooks/
+│   └── tutorials/        # Step-by-step Jupyter notebooks
+│       ├── enhance.ipynb
+│       ├── compare.ipynb
+│       ├── call.ipynb
+│       └── visualize.ipynb
+├── config/
+│   └── config.yaml       # All pipeline parameters
+├── data_example/         # Small example dataset for testing
+├── results_example/      # Expected outputs
+├── figures/              # Pipeline figures
+├── run.py                # CLI entry point
+└── environment.yml       # Conda environment
+```
+
+## Configuration
+
+All parameters are set in `config/config.yaml`. Key fields:
+
+```yaml
+samples:
+  - Brain
+  - Kidney
+
+genome: mm10
+resolution: 10000
+hicpro_dir: /path/to/hicpro_output
+output_dir: /path/to/output
+
+enhancement:
+  method: deephic
+  checkpoint: /path/to/deephic_raw_16.pth
+
+comparison:
+  window: 310000
+  step: 10000
+
+calling:
+  loops:
+    tool: chromosight
+  tad:
+    tool: hicFindTADs
+```
 
 ## Dependencies (conda env: hic, Python 3.9)
 
@@ -43,47 +134,29 @@
 - numba
 - dask
 
+Full environment: `environment.yml`
 
 ## Methods and Tools
-### HiC Pre-processing 
-- **HiC-Pro** - https://github.com/nservant/HiC-Pro \
-HiC-Pro is an optimized and flexible pipeline for Hi-C data processing. Raw .fastq files from HiC experiments are inputted, and .matrix interaction maps/matrices are outputted.
 
-### Enhancing Interaction Maps
-- **DeepHiC** - https://github.com/Jakob-Zerbs/DeepHiC/tree/dev \
-DeepHiC is a deep learning model developed for boosting the resolution of Hi-C data. It is based on Generative Adversarial Network. It takes low-resolution data as conditional inputs for Generator Net in GAN and outputs the enhanced Hi-C matrices.
-  
-- **HiCplus** - https://github.com/Jakob-Zerbs/hicplus \
-A computational approach based on a deep convolutional neural network, to infer high-resolution Hi-C interaction matrices from low-resolution Hi-C data.
+### Pre-processing
+- **HiC-Pro** — https://github.com/nservant/HiC-Pro
 
-- **DeepLoop** - https://github.com/Jakob-Zerbs/DeepLoop \
-DeepLoop handles systematic biases and random noises separately: HiCorr improves the rigor of bias correction, and  deep-learning techniques are applied for noise reduction and loop signal enhancement. 
+### Enhancement
+- **DeepHiC** — https://github.com/Jakob-Zerbs/DeepHiC/tree/dev
+- **HiCplus** — https://github.com/Jakob-Zerbs/hicplus
+- **DeepLoop** — https://github.com/Jakob-Zerbs/DeepLoop
 
-### Comparing Interaction Maps
-- **CHESS** - https://github.com/Jakob-Zerbs/chess \
-An algorithm for the comparison of chromatin contact maps and automatic differential feature extraction using the SSIM score.
+### Comparison
+- **CHESS** — https://github.com/Jakob-Zerbs/chess
 
-### Calling Structures
-- **hicFindTAD** - https://github.com/deeptools/HiCExplorer/tree/master \
-hicFindTADs, part of the HiCExplorer suite, identifies TAD boundaries by computing insulation scores along the diagonal of Hi-C contact matrices and detecting significant changes in interaction frequencies.
+### Calling
+- **hicFindTADs** — https://github.com/deeptools/HiCExplorer
+- **Chromosight** — https://github.com/koszullab/chromosight
 
-- **chromosight** - https://github.com/koszullab/chromosight \
-Chromosight detects chromatin loops and other structural patterns in Hi-C contact matrices using a correlation-based template matching approach.
+### Visualization
+- **FAN-C** — https://github.com/vaquerizaslab/fanc
+- **HiCPlotter** — https://github.com/akdemirlab/HiCPlotter
 
-### Visualization Tools
-- https://github.com/vaquerizaslab/fanc
-- https://github.com/akdemirlab/HiCPlotter
-  
-## Results
-The HiC enhance and compare pipeline was tested on the following mm10 tissue samples:
-- Kidney
-- Spleen
-- Liver
-- Large Intestine
-- Small Intestine
-- Lung
-- Pancreas
+## Tested Samples
 
-### Enhancing Interaction Maps 
-Comparative analysis proved that DeepHiC is a more effective interaction map enhancer. As seen in the figure below, DeepHiC increases the number of interactions across all chromosomes by a greater extent than HiCPlus.  
-![Image 3](figures/fig4.png)
+Pipeline validated on mm10 mouse tissues: Kidney, Spleen, Liver, Large Intestine, Small Intestine, Lung, Pancreas, Brain.
