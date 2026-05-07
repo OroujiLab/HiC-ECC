@@ -1,7 +1,6 @@
 # HiC-ECC: Hi-C Enhancement, Comparison, and Calling Pipeline
 
 ![Pipeline Overview](figures/diagram.png)
-![Pipeline Overview](figures/fig1.png)
 ![Results](figures/fig3.png)
 ![Enhancement Comparison](figures/fig4.png)
 
