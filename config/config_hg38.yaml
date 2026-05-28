@@ -1,18 +1,43 @@
+# ─────────────────────────────────────────────────────────────
+# HiC-ECC Configuration — hg38 CRC samples
+# ─────────────────────────────────────────────────────────────
+
 # ── Samples ──────────────────────────────────────────────────
 samples:
-  - Brain
-  - Kidney
-  - Large_Intestine
-  - Liver
-  - Lung
-  - Pancreas
-  - Small_Intestine
-  - Spleen
+  - CSC_073
+  - CSC_240
+  - CSC_386
+  - CSC_401
+  - CSC_406
+  - CSC_432
+  - CSC_433
+  - CSC_434
+  - CSC_441
+  - CSC_442
+  - CSC_445
+  - CSC_449
+  - CSC_456
+  - CSC_463
+  - CSC_465
+  - CSC_471
+  - CSC_478C
+  - CSC_478L
+  - CSC_514
+  - CSC_522
+  - CSC_526
+  - POP_024
+  - POP_066
+  - POP_092
+  - POP_112
+  - POP_141
+  - POP_160
+  - POP_174
+  - POP_181
 
 # ── Genome ───────────────────────────────────────────────────
-genome: mm10
-species: mouse
-chrom_sizes: /cluster/projects/epigenomics/BACKUP_31032025/EpigenomeLab/Aminnn/Genomes/mm10.chrom.sizes
+genome: hg38
+species: human
+chrom_sizes: /cluster/projects/epigenomics/BACKUP_31032025/EpigenomeLab/Aminnn/Genomes/hg38.chrom.sizes.filtered
 chromosomes:
   - chr1
   - chr2
@@ -33,6 +58,9 @@ chromosomes:
   - chr17
   - chr18
   - chr19
+  - chr20
+  - chr21
+  - chr22
   - chrX
   - chrY
 
@@ -40,10 +68,10 @@ chromosomes:
 resolution: 10000
 
 # ── Paths ────────────────────────────────────────────────────
-hicpro_dir: /cluster/projects/epigenomics/BACKUP_31032025/EpigenomeLab/Aminnn/Hi-C/Mouse/HiC_Pro
-output_dir: /cluster/projects/epigenomics/BACKUP_31032025/EpigenomeLab/Aminnn/Hi-C/Mouse/final_results/enhanced_data
+hicpro_dir: /cluster/projects/epigenomics/Aminnn/Hi-C/HiC_ECC_all_samples
+output_dir: /cluster/projects/epigenomics/Aminnn/Hi-C/HiC_ECC_all_samples/HiC_ECC_hg38_output/enhanced_data
 
-# ── Enhancement ──────────────────────────────────────────────
+# ── Enhancement (DeepHiC) ────────────────────────────────────
 enhancement:
   method: deephic
   deephic_path: /cluster/home/t111631uhn/DeepHiC
@@ -53,7 +81,7 @@ enhancement:
   bound: 9999
   lrc: 100
 
-# ── Comparison ───────────────────────────────────────────────
+# ── Comparison (CHESS) ───────────────────────────────────────
 comparison:
   method: chess
   window: 310000
@@ -71,12 +99,12 @@ calling:
     tool: chromosight
     threads: 12
 
-# ── Visualization ────────────────────────────────────────────
+# ── Visualization (pyECC) ────────────────────────────────────
 visualization:
   region:
-    chr: 4
-    start: 55000000
-    end: 56000000
+    chr: 1
+    start: 50000000
+    end: 51000000
     gene_name: Test_Region
   percentile: 90
   merge_intervals: true
@@ -87,4 +115,4 @@ visualization:
   show_insulation: true
   show_genes: true
   specificity_samples: []
-  gtf_path: /cluster/projects/epigenomics/BACKUP_31032025/EpigenomeLab/Aminnn/Genomes/gencode.vM25.annotation.gtf
+  gtf_path: /cluster/projects/epigenomics/BACKUP_31032025/EpigenomeLab/Aminnn/Genomes/gencode.v49.annotation.gtf 
